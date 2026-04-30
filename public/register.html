@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JobSeek - Register</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 400px;
+      margin: 50px auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+    button:hover {
+      background-color: #218838;
+    }
+    .error {
+      color: #dc3545;
+      text-align: center;
+      margin-top: 10px;
+    }
+    .link {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .link a {
+      color: #007bff;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Create Account</h2>
+    <form id="registerForm">
+      <input type="email" id="email" placeholder="Email" required>
+      <input type="password" id="password" placeholder="Password (min 6 characters)" required>
+      <button type="submit">Create Account</button>
+    </form>
+    <p id="error" class="error"></p>
+    <div class="link">
+      <a href="login.html">Already have an account? Login</a>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById("registerForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const errorElement = document.getElementById("error");
+
+      errorElement.textContent = "";
+
+      try {
+        const res = await fetch("/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password })
+        });
+
+        if (res.ok) {
+          alert("Registration successful! Please login.");
+          window.location.href = "login.html";
+        } else {
+          const data = await res.json();
+          errorElement.textContent = data.message || "Registration failed";
+        }
+      } catch (error) {
+        errorElement.textContent = "Network error. Please try again.";
+      }
+    });
+  </script>
+</body>
+</html>

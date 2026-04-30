@@ -1,8 +1,20 @@
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { AppModule } from './app.module.js';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  await app.listen(process.env.PORT ?? 3000);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  app.enableCors();
+
+  const frontendPath = resolve(process.cwd(), 'public');
+  if (existsSync(frontendPath)) {
+    app.useStaticAssets(frontendPath);
+  }
+
+  const port = process.env.PORT ?? 3000;
+  await app.listen(port);
+  console.log(`Application is running on http://localhost:${port}`);
 }
-bootstrap();
+void bootstrap();

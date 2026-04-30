@@ -1,10 +1,24 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { AppController } from './app.controller.js';
+import { getDatabaseConfig } from './config/database.config.js';
+import { loadEnv } from './config/load-env.js';
+import { JobsModule } from './jobs/jobs.module.js';
+import { AuthModule } from './auth.module.js';
+import { User } from './user.entity.js';
+import { Job } from './jobs/job.entity.js';
+
+loadEnv();
 
 @Module({
-  imports: [],
+  imports: [
+    TypeOrmModule.forRoot({
+      ...getDatabaseConfig(),
+      entities: [Job, User],
+    }),
+    JobsModule,
+    AuthModule,
+  ],
   controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}

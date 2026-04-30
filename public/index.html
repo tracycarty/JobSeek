@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JobSeek</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 50px;
+      background-color: #f8f9fa;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 30px;
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      margin: 10px;
+      background-color: #007bff;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+    }
+    .btn:hover {
+      background-color: #0056b3;
+    }
+    .btn.secondary {
+      background-color: #28a745;
+    }
+    .btn.secondary:hover {
+      background-color: #218838;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Welcome to JobSeek</h1>
+    <p>Find your dream job or post opportunities for talented applicants.</p>
+
+    <div id="authenticated">
+      <p>You are logged in!</p>
+      <a href="/jobs" class="btn">Browse Jobs</a>
+      <button onclick="logout()" class="btn secondary">Logout</button>
+    </div>
+
+    <div id="unauthenticated">
+      <a href="login.html" class="btn">Login</a>
+      <a href="register.html" class="btn secondary">Register</a>
+    </div>
+  </div>
+
+  <script>
+    // Check if user is authenticated
+    const token = localStorage.getItem('token');
+    const authenticatedDiv = document.getElementById('authenticated');
+    const unauthenticatedDiv = document.getElementById('unauthenticated');
+
+    if (token) {
+      authenticatedDiv.style.display = 'block';
+      unauthenticatedDiv.style.display = 'none';
+    } else {
+      authenticatedDiv.style.display = 'none';
+      unauthenticatedDiv.style.display = 'block';
+    }
+
+    function logout() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('role');
+      window.location.reload();
+    }
+  </script>
+</body>
+</html>

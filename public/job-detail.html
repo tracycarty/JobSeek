@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JobSeek - Job Details</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .back-btn {
+      padding: 10px 20px;
+      background-color: #6c757d;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .back-btn:hover {
+      background-color: #545b62;
+    }
+    .job-detail {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .job-detail h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+    .job-meta {
+      color: #666;
+      margin-bottom: 20px;
+      font-size: 18px;
+    }
+    .salary {
+      font-size: 24px;
+      font-weight: bold;
+      color: #28a745;
+      margin-bottom: 30px;
+    }
+    .description {
+      line-height: 1.6;
+      color: #333;
+    }
+    .description h2 {
+      color: #333;
+      margin-top: 30px;
+      margin-bottom: 15px;
+    }
+    .loading {
+      text-align: center;
+      padding: 50px;
+      font-size: 18px;
+      color: #666;
+    }
+    .error {
+      text-align: center;
+      padding: 50px;
+      color: #dc3545;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <a href="/jobs.html" class="back-btn">← Back to Jobs</a>
+    <h1>Job Details</h1>
+    <div></div>
+  </div>
+
+  <div id="content">
+    <div class="loading">Loading job details...</div>
+  </div>
+
+  <script>
+    async function loadJobDetails() {
+      const content = document.getElementById('content');
+
+      // Get job ID from URL query parameter
+      const urlParams = new URLSearchParams(window.location.search);
+      const jobId = urlParams.get('id');
+
+      if (!jobId || isNaN(jobId)) {
+        content.innerHTML = '<div class="error">Invalid job ID</div>';
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        const headers = {};
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const response = await fetch(`/jobs/${jobId}`, { headers });
+
+        if (response.status === 401) {
+          // Token expired or invalid
+          localStorage.removeItem('token');
+          localStorage.removeItem('role');
+          window.location.href = '/login.html';
+          return;
+        }
+
+        if (response.status === 404) {
+          content.innerHTML = '<div class="error">Job not found</div>';
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch job details');
+        }
+
+        const job = await response.json();
+        renderJobDetails(job);
+      } catch (error) {
+        content.innerHTML = '<div class="error">Failed to load job details. Please try again.</div>';
+      }
+    }
+
+    function renderJobDetails(job) {
+      const html = `
+        <div class="job-detail">
+          <h1>${job.title}</h1>
+          <div class="job-meta">
+            <strong>${job.company}</strong> - ${job.location}
+          </div>
+          <div class="salary">
+            Salary: ${job.salary || 'Not specified'}
+          </div>
+          <div class="description">
+            <h2>Job Description</h2>
+            <p>${job.description.replace(/\n/g, '<br>')}</p>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('content').innerHTML = html;
+    }
+
+    // Check authentication
+    const token = localStorage.getItem('token');
+    if (!token) {
+      window.location.href = '/login.html';
+    } else {
+      loadJobDetails();
+    }
+  </script>
+</body>
+</html>
