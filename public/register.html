@@ -58,6 +58,32 @@
       color: #007bff;
       text-decoration: none;
     }
+    .role-selection {
+      margin: 20px 0 15px 0;
+    }
+    .role-selection label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: bold;
+      color: #333;
+    }
+    select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-size: 16px;
+      background-color: white;
+    }
+    select:hover {
+      border-color: #999;
+    }
+    select:focus {
+      outline: none;
+      border-color: #28a745;
+      box-shadow: 0 0 5px rgba(40, 167, 69, 0.3);
+    }
   </style>
 </head>
 <body>
@@ -66,6 +92,14 @@
     <form id="registerForm">
       <input type="email" id="email" placeholder="Email" required>
       <input type="password" id="password" placeholder="Password (min 6 characters)" required>
+      <div class="role-selection">
+        <label for="role">Select your role:</label>
+        <select id="role" required>
+          <option value="">Choose a role...</option>
+          <option value="applicant">Applicant - Looking for jobs</option>
+          <option value="employee">Employee - Hiring for jobs</option>
+        </select>
+      </div>
       <button type="submit">Create Account</button>
     </form>
     <p id="error" class="error"></p>
@@ -80,6 +114,7 @@
 
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
+      const role = document.getElementById("role").value;
       const errorElement = document.getElementById("error");
 
       errorElement.textContent = "";
@@ -88,7 +123,7 @@
         const res = await fetch("/auth/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password })
+          body: JSON.stringify({ email, password, role })
         });
 
         if (res.ok) {
