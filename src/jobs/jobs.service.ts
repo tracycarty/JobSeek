@@ -24,6 +24,39 @@ export interface PaginatedJobs {
   pagination: PaginationMeta;
 }
 
+const fallbackJobs = [
+  {
+    id: 1,
+    title: 'Software Developer',
+    company: 'Tech Corp',
+    location: 'Cagayan de Oro',
+    salary: 'PHP 30,000',
+    description:
+      'Build and maintain web applications with a small product team focused on reliable hiring tools.',
+    created_at: new Date('2026-04-30T12:00:00.000Z'),
+  },
+  {
+    id: 2,
+    title: 'Customer Support Specialist',
+    company: 'Northstar Careers',
+    location: 'Remote',
+    salary: 'PHP 24,000',
+    description:
+      'Help applicants and employers resolve account, posting, and interview scheduling questions.',
+    created_at: new Date('2026-04-29T09:30:00.000Z'),
+  },
+  {
+    id: 3,
+    title: 'Junior QA Tester',
+    company: 'BrightByte',
+    location: 'Davao City',
+    salary: 'PHP 22,000',
+    description:
+      'Test new releases, write clear bug reports, and support regression checks before launch.',
+    created_at: new Date('2026-04-28T08:15:00.000Z'),
+  },
+] as Job[];
+
 @Injectable()
 export class JobsService {
   constructor(
@@ -46,6 +79,15 @@ export class JobsService {
       skip,
       take: limit,
     });
+
+    if (total === 0) {
+      return this.paginatedResponse(
+        this.paginate(fallbackJobs, skip, limit),
+        page,
+        limit,
+        fallbackJobs.length,
+      );
+    }
 
     return this.paginatedResponse(jobs, page, limit, total);
   }
@@ -77,17 +119,39 @@ export class JobsService {
 
     const [jobs, total] = await searchQuery.getManyAndCount();
 
+    if (total === 0) {
+      const normalizedQuery = q.trim().toLowerCase();
+      const matches = fallbackJobs.filter((job) =>
+        [job.title, job.company, job.location].some((field) =>
+          field.toLowerCase().includes(normalizedQuery),
+        ),
+      );
+
+      return this.paginatedResponse(
+        this.paginate(matches, skip, limit),
+        page,
+        limit,
+        matches.length,
+      );
+    }
+
     return this.paginatedResponse(jobs, page, limit, total);
   }
 
   async findOne(id: number): Promise<Job> {
     const job = await this.jobsRepository.findOne({ where: { id } });
 
-    if (!job) {
+    if (job) {
+      return job;
+    }
+
+    const fallbackJob = fallbackJobs.find((candidate) => candidate.id === id);
+
+    if (!fallbackJob) {
       throw new NotFoundException('Job not found');
     }
 
-    return job;
+    return fallbackJob;
   }
 
   private normalizePagination(query: PaginationQuery) {
@@ -113,6 +177,10 @@ export class JobsService {
 
   private escapeLike(value: string): string {
     return value.replace(/[\\%_]/g, '\\$&');
+  }
+
+  private paginate<T>(items: T[], skip: number, limit: number): T[] {
+    return items.slice(skip, skip + limit);
   }
 
   private paginatedResponse(

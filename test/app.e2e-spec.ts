@@ -22,8 +22,8 @@ describe('AppController (e2e)', () => {
       .expect(200)
       .expect('Content-Type', /html/)
       .expect((response) => {
-        expect(response.text).toContain('<title>Browse Jobs | JobSeek</title>');
-        expect(response.text).toContain('id="job-list"');
+        expect(response.text).toContain('<title>Login | JobSeek</title>');
+        expect(response.text).toContain('id="loginForm"');
       });
   });
 

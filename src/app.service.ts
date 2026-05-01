@@ -154,16 +154,24 @@ export class AppService {
 </head>
 <body class="auth-page">
   <main class="auth-shell">
-    <form id="loginForm" class="panel">
-      <h1>JobSeek</h1>
-      <label>Email <input type="email" id="email" placeholder="Email" required></label>
-      <label>Password <input type="password" id="password" placeholder="Password" required minlength="6"></label>
-      <button type="submit">Login</button>
-      <p id="error" class="error" role="alert"></p>
+    <section class="panel">
+      <form id="loginForm" class="auth-form">
+        <h1>JobSeek</h1>
+        <label>Email <input type="email" id="email" placeholder="Email" required></label>
+        <label>Password <input type="password" id="password" placeholder="Password" required minlength="6"></label>
+        <button type="submit">Login</button>
+        <p id="error" class="error" role="alert"></p>
+      </form>
+      <a class="secondary-action" href="/index.html" id="browseJobsLink">Browse Jobs</a>
       <p class="muted">No account yet? <a href="/register.html">Register</a></p>
-    </form>
+    </section>
   </main>
   <script>
+    document.getElementById("browseJobsLink").addEventListener("click", (event) => {
+      event.preventDefault();
+      window.location.assign("/index.html");
+    });
+
     document.getElementById("loginForm").addEventListener("submit", async (event) => {
       event.preventDefault();
       const email = document.getElementById("email").value;
@@ -275,8 +283,8 @@ export class AppService {
 
     async function loadJobs() {
       const endpoint = q
-        ? "/jobs/search?q=" + encodeURIComponent(q) + "&page=" + page
-        : "/jobs?page=" + page;
+        ? "/ui/jobs/search?q=" + encodeURIComponent(q) + "&page=" + page
+        : "/ui/jobs?page=" + page;
       const list = document.getElementById("job-list");
 
       try {
@@ -346,7 +354,7 @@ export class AppService {
         return;
       }
 
-      const response = await fetch("/jobs/" + encodeURIComponent(id));
+      const response = await fetch("/ui/jobs/" + encodeURIComponent(id));
       const job = await response.json();
       if (!response.ok) {
         article.innerHTML = '<p class="error">' + (job.message || "Job not found") + '</p>';
@@ -404,10 +412,11 @@ export class AppService {
       input, button { min-height: 44px; border-radius: 6px; font: inherit; }
       input { width: 100%; border: 1px solid #c9d2dc; padding: 0 12px; }
       button { border: 0; background: #0f766e; color: white; padding: 0 18px; font-weight: 700; cursor: pointer; }
+      .secondary-action { min-height: 44px; border: 1px solid #0f766e; border-radius: 6px; display: inline-grid; place-items: center; padding: 0 18px; text-decoration: none; }
       .auth-page { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
       .auth-shell, .detail-shell { width: min(100%, 760px); margin: 40px auto; padding: 0 20px; }
       .panel, .job-card { background: white; border: 1px solid #dfe5eb; border-radius: 8px; padding: 24px; box-shadow: 0 10px 30px rgba(23, 32, 42, 0.06); }
-      .panel { display: grid; gap: 16px; }
+      .panel, .auth-form { display: grid; gap: 16px; }
       .muted, .eyebrow { color: #667085; }
       .error { color: #b42318; font-weight: 700; }
       .empty { color: #667085; }

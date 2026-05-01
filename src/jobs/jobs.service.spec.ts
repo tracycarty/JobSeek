@@ -51,19 +51,30 @@ describe('JobsService', () => {
     });
   });
 
-  it('uses defaults for invalid pagination values', async () => {
+  it('uses fallback jobs when the database is empty', async () => {
     repository.findAndCount.mockResolvedValue([[], 0]);
 
-    await expect(
-      service.findAll({ page: '-1', limit: 'abc' }),
-    ).resolves.toEqual({
-      data: [],
-      pagination: {
-        page: 1,
-        limit: 10,
-        total: 0,
-        totalPages: 0,
-      },
+    const result = await service.findAll({ page: '-1', limit: 'abc' });
+
+    expect(result.data).toHaveLength(3);
+    expect(result.data[0]).toMatchObject({
+      id: 1,
+      title: 'Software Developer',
+    });
+    expect(result.pagination).toEqual({
+      page: 1,
+      limit: 10,
+      total: 3,
+      totalPages: 1,
+    });
+  });
+
+  it('returns fallback job details when a database job is not found', async () => {
+    repository.findOne.mockResolvedValue(null);
+
+    await expect(service.findOne(1)).resolves.toMatchObject({
+      id: 1,
+      title: 'Software Developer',
     });
   });
 

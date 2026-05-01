@@ -45,41 +45,8 @@
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Welcome to JobSeek</h1>
-    <p>Find your dream job or post opportunities for talented applicants.</p>
-
-    <div id="authenticated">
-      <p>You are logged in!</p>
-      <a href="/jobs" class="btn">Browse Jobs</a>
-      <button onclick="logout()" class="btn secondary">Logout</button>
-    </div>
-
-    <div id="unauthenticated">
-      <a href="login.html" class="btn">Login</a>
-      <a href="register.html" class="btn secondary">Register</a>
-    </div>
-  </div>
-
   <script>
-    // Check if user is authenticated
-    const token = localStorage.getItem('token');
-    const authenticatedDiv = document.getElementById('authenticated');
-    const unauthenticatedDiv = document.getElementById('unauthenticated');
-
-    if (token) {
-      authenticatedDiv.style.display = 'block';
-      unauthenticatedDiv.style.display = 'none';
-    } else {
-      authenticatedDiv.style.display = 'none';
-      unauthenticatedDiv.style.display = 'block';
-    }
-
-    function logout() {
-      localStorage.removeItem('token');
-      localStorage.removeItem('role');
-      window.location.reload();
-    }
+    window.location.replace('/login.html');
   </script>
 </body>
 </html>
