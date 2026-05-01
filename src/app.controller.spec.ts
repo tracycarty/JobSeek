@@ -15,8 +15,11 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
+    it('should land on the job browsing page', () => {
+      expect(appController.getRootPage()).toContain(
+        '<title>Browse Jobs | JobSeek</title>',
+      );
+      expect(appController.getRootPage()).toContain('id="job-list"');
     });
   });
 });
