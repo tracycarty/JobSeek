@@ -1,18 +1,25 @@
-import { existsSync } from 'node:fs';
-import { resolve } from 'node:path';
-import { Controller, Get, NotFoundException, Res } from '@nestjs/common';
-import type { Response } from 'express';
+import { Controller, Get, Header } from '@nestjs/common';
+import { AppService } from './app.service.js';
 
 @Controller()
 export class AppController {
+  constructor(private readonly appService: AppService) {}
+
   @Get()
-  showUi(@Res() response: Response) {
-    const indexPath = resolve(process.cwd(), '../frontend/index.html');
+  @Header('Content-Type', 'text/html')
+  getRootPage(): string {
+    return this.appService.getJobsPage();
+  }
 
-    if (!existsSync(indexPath)) {
-      throw new NotFoundException('Frontend not found');
-    }
+  @Get('index.html')
+  @Header('Content-Type', 'text/html')
+  getJobsPage(): string {
+    return this.appService.getJobsPage();
+  }
 
-    return response.sendFile(indexPath);
+  @Get('job.html')
+  @Header('Content-Type', 'text/html')
+  getJobPage(): string {
+    return this.appService.getJobPage();
   }
 }

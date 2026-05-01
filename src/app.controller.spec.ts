@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from './app.controller.js';
+import { AppService } from './app.service.js';
 
 describe('AppController', () => {
   let appController: AppController;
@@ -7,14 +8,18 @@ describe('AppController', () => {
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
       controllers: [AppController],
+      providers: [AppService],
     }).compile();
 
     appController = app.get<AppController>(AppController);
   });
 
   describe('root', () => {
-    it('serves the UI route', () => {
-      expect(appController.showUi).toBeInstanceOf(Function);
+    it('should land on the job browsing page', () => {
+      expect(appController.getRootPage()).toContain(
+        '<title>Browse Jobs | JobSeek</title>',
+      );
+      expect(appController.getRootPage()).toContain('id="job-list"');
     });
   });
 });

@@ -7,6 +7,7 @@ import { JobsModule } from './jobs/jobs.module.js';
 import { AuthModule } from './auth.module.js';
 import { User } from './user.entity.js';
 import { Job } from './jobs/job.entity.js';
+import { AppService } from './app.service.js';
 
 loadEnv();
 
@@ -20,5 +21,6 @@ loadEnv();
     AuthModule,
   ],
   controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}
