@@ -2,7 +2,6 @@ import {
   BadRequestException,
   Controller,
   Get,
-  Header,
   NotFoundException,
   Param,
   Query,
@@ -16,32 +15,8 @@ export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get()
-  @Header('Content-Type', 'text/html')
-  getRootPage(): string {
-    return this.appService.getLoginPage();
-  }
-
-  @Get('login.html')
-  @Header('Content-Type', 'text/html')
-  getLoginPage(): string {
-    return this.appService.getLoginPage();
-  }
-
-  @Get('register.html')
-  @Header('Content-Type', 'text/html')
-  getRegisterPage(): string {
-    return this.appService.getRegisterPage();
-  }
-
-  @Get('index.html')
-  getIndexRedirect(@Res() response: Response) {
+  redirectRoot(@Res() response: Response) {
     return response.redirect('/login.html');
-  }
-
-  @Get('job.html')
-  @Header('Content-Type', 'text/html')
-  getJobPage(): string {
-    return this.appService.getJobPage();
   }
 
   @Get('ui/jobs/search')

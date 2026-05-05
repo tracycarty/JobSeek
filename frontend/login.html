@@ -22,6 +22,7 @@
       text-align: center;
       color: #333;
       margin-bottom: 30px;
+      font-size: 32px;
     }
     input {
       width: 100%;
@@ -31,19 +32,27 @@
       border-radius: 4px;
       box-sizing: border-box;
     }
+    label {
+      display: block;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 5px;
+      margin-top: 15px;
+    }
     button {
       width: 100%;
       padding: 12px;
-      background-color: #007bff;
+      background-color: #008080;
       color: white;
       border: none;
       border-radius: 4px;
       cursor: pointer;
       font-size: 16px;
-      margin-top: 10px;
+      margin-top: 20px;
+      font-weight: 600;
     }
     button:hover {
-      background-color: #0056b3;
+      background-color: #006666;
     }
     .error {
       color: #dc3545;
@@ -62,15 +71,17 @@
 </head>
 <body>
   <div class="container">
-    <h2>Login to JobSeek</h2>
+    <h2>JobSeek</h2>
     <form id="loginForm">
+      <label for="email">Email</label>
       <input type="email" id="email" placeholder="Email" required>
+      <label for="password">Password</label>
       <input type="password" id="password" placeholder="Password" required>
       <button type="submit">Login</button>
     </form>
     <p id="error" class="error"></p>
     <div class="link">
-      <a href="register.html">Don't have an account? Register</a>
+      No account yet? <a href="register.html">Register</a>
     </div>
   </div>
 

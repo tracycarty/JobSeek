@@ -39,7 +39,7 @@
     async function fetchJobs() {
       const token = localStorage.getItem('token');
       if (!token) {
-        window.location.href = '../login.html';
+        window.location.href = '/login.html';
         return;
       }
 
@@ -103,7 +103,7 @@
     function logout() {
       localStorage.removeItem('token');
       localStorage.removeItem('role');
-      window.location.href = '../login.html';
+      window.location.href = '/login.html';
     }
 
     fetchJobs();

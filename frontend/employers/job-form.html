@@ -69,7 +69,7 @@
     const token = localStorage.getItem('token');
 
     if (!token) {
-      window.location.href = '../login.html';
+      window.location.href = '/login.html';
     }
 
     document.getElementById('jobForm').addEventListener('submit', async (event) => {
@@ -112,7 +112,7 @@
     function logout() {
       localStorage.removeItem('token');
       localStorage.removeItem('role');
-      window.location.href = '../login.html';
+      window.location.href = '/login.html';
     }
 
     async function loadJob() {

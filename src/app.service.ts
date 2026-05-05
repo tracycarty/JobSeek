@@ -31,6 +31,13 @@ export class AppService {
       role: 'admin',
       created_at: new Date('2026-04-30T12:00:00.000Z').toISOString(),
     },
+    {
+      id: 2,
+      email: 'employer@jobseek.com',
+      passwordHash: this.hashPassword('employer123'),
+      role: 'employee',
+      created_at: new Date('2026-04-30T12:00:00.000Z').toISOString(),
+    },
   ];
 
   private readonly jobs: Job[] = [
@@ -110,7 +117,7 @@ export class AppService {
     return {
       access_token: `jobseek-${randomUUID()}`,
       user: this.toPublicUser(user),
-      redirectTo: user.role === 'applicant' ? '/applicants/jobs.html' : '/',
+      redirectTo: user.role === 'applicant' ? '/applicants/jobs.html' : '/employers/dashboard.html',
     };
   }
 
@@ -162,16 +169,10 @@ export class AppService {
         <button type="submit">Login</button>
         <p id="error" class="error" role="alert"></p>
       </form>
-      <a class="secondary-action" href="/applicants/jobs.html" id="browseJobsLink">Browse Jobs</a>
       <p class="muted">No account yet? <a href="/register.html">Register</a></p>
     </section>
   </main>
   <script>
-    document.getElementById("browseJobsLink").addEventListener("click", (event) => {
-      event.preventDefault();
-      window.location.assign("/applicants/jobs.html");
-    });
-
     document.getElementById("loginForm").addEventListener("submit", async (event) => {
       event.preventDefault();
       const email = document.getElementById("email").value;
@@ -217,7 +218,7 @@ export class AppService {
       <label>Password <input type="password" id="password" placeholder="Password" required minlength="6"></label>
       <button type="submit">Create Account</button>
       <p id="error" class="error" role="alert"></p>
-      <p class="muted">Already registered? <a href="/login.html">Login</a></p>
+      <p class="muted">Already registered? <a href="/">Login</a></p>
     </form>
   </main>
   <script>
@@ -233,7 +234,7 @@ export class AppService {
       });
 
       if (response.ok) {
-        window.location.href = "/login.html";
+        window.location.href = "/";
         return;
       }
 
