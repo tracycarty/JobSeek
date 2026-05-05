@@ -1,7 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, Repository } from 'typeorm';
 import { PaginationQuery } from './dto/pagination-query.dto.js';
+import { CreateJobDto } from './dto/create-job.dto.js';
+import { UpdateJobDto } from './dto/update-job.dto.js';
 import { Job } from './job.entity.js';
 
 export interface PaginationMeta {
@@ -17,6 +19,7 @@ export interface JobSummary {
   company: string;
   location: string;
   salary: string | null;
+  status: string;
 }
 
 export interface PaginatedJobs {
@@ -31,8 +34,10 @@ const fallbackJobs = [
     company: 'Tech Corp',
     location: 'Cagayan de Oro',
     salary: 'PHP 30,000',
+    status: 'Open',
     description:
       'Build and maintain web applications with a small product team focused on reliable hiring tools.',
+    employer_id: null,
     created_at: new Date('2026-04-30T12:00:00.000Z'),
   },
   {
@@ -41,8 +46,10 @@ const fallbackJobs = [
     company: 'Northstar Careers',
     location: 'Remote',
     salary: 'PHP 24,000',
+    status: 'Open',
     description:
       'Help applicants and employers resolve account, posting, and interview scheduling questions.',
+    employer_id: null,
     created_at: new Date('2026-04-29T09:30:00.000Z'),
   },
   {
@@ -51,8 +58,10 @@ const fallbackJobs = [
     company: 'BrightByte',
     location: 'Davao City',
     salary: 'PHP 22,000',
+    status: 'Open',
     description:
       'Test new releases, write clear bug reports, and support regression checks before launch.',
+    employer_id: null,
     created_at: new Date('2026-04-28T08:15:00.000Z'),
   },
 ] as Job[];
@@ -74,6 +83,7 @@ export class JobsService {
         company: true,
         location: true,
         salary: true,
+        status: true,
       },
       order: { created_at: 'DESC', id: 'DESC' },
       skip,
@@ -104,6 +114,7 @@ export class JobsService {
         'job.company',
         'job.location',
         'job.salary',
+        'job.status',
       ])
       .where(
         new Brackets((qb) => {
@@ -136,6 +147,62 @@ export class JobsService {
     }
 
     return this.paginatedResponse(jobs, page, limit, total);
+  }
+
+  async findEmployerJobs(employerId: number): Promise<Job[]> {
+    return this.jobsRepository.find({
+      where: { employer_id: employerId },
+      order: { created_at: 'DESC', id: 'DESC' },
+    });
+  }
+
+  async create(createJobDto: CreateJobDto, employerId: number): Promise<Job> {
+    const newJob = this.jobsRepository.create({
+      ...createJobDto,
+      salary: createJobDto.salary || null,
+      employer_id: employerId,
+    });
+
+    return this.jobsRepository.save(newJob);
+  }
+
+  async update(
+    id: number,
+    updateJobDto: UpdateJobDto,
+    employerId: number,
+  ): Promise<Job> {
+    const job = await this.jobsRepository.findOne({ where: { id } });
+
+    if (!job) {
+      throw new NotFoundException('Job not found');
+    }
+
+    if (job.employer_id !== employerId) {
+      throw new ForbiddenException('Only the job owner can update this job');
+    }
+
+    Object.assign(job, {
+      ...updateJobDto,
+      salary:
+        updateJobDto.salary === undefined ? job.salary : updateJobDto.salary,
+    });
+
+    return this.jobsRepository.save(job);
+  }
+
+  async remove(id: number, employerId: number): Promise<{ message: string }> {
+    const job = await this.jobsRepository.findOne({ where: { id } });
+
+    if (!job) {
+      throw new NotFoundException('Job not found');
+    }
+
+    if (job.employer_id !== employerId) {
+      throw new ForbiddenException('Only the job owner can delete this job');
+    }
+
+    await this.jobsRepository.remove(job);
+    return { message: 'Job deleted successfully' };
   }
 
   async findOne(id: number): Promise<Job> {

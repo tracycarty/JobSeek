@@ -2,8 +2,8 @@
 
 **Feature Name:** Employer Job Posting  
 **App Name:** JobSeek  
-**Spec Path:** specs/employer-job-posting.md  
-**Spec Status:** Review / Not Ready for Development  
+**Spec Path:** specs/employers-job-posting.md  
+**Spec Status:** Implemented  
 
 ---
 
@@ -18,7 +18,7 @@ Provide authenticated employers with a dedicated landing page where they can pos
 * Employer login redirects to an employer dashboard landing page
 * Create new job listings via API and UI  
 * Retrieve employer-specific job listings  
-* View job posting status for review (Open / Closed / Pending)  
+* View job posting status for review (Open / Closed / Review)  
 * Update job details  
 * Delete job listings  
 * Control job visibility (Open / Closed)  
@@ -49,7 +49,7 @@ Provide authenticated employers with a dedicated landing page where they can pos
 * **REQ_006:** Only the job owner can update/delete the job  
 * **REQ_007:** Job includes title, company, location, salary, description  
 * **REQ_008:** Default job status is `Open`  
-* **REQ_009:** Job status can be updated (Open / Closed / Pending)  
+* **REQ_009:** Job status can be updated (Open / Closed / Review)  
 * **REQ_010:** Use MySQL via TypeORM  
 
 ## Frontend (Minimal / No Framework)
@@ -129,13 +129,13 @@ Provide authenticated employers with a dedicated landing page where they can pos
 
 ## 6.1 Pages
 
-1. Employer Dashboard (`dashboard.html`)
+1. Employer Dashboard (`employers/dashboard.html`)
    * Visible after employer login
    * Uses the same clean card-based layout as the applicant jobs page
    * Includes a header with page title, employer landing message, and a prominent "Post Job" button
    * Displays employer job postings in a responsive grid with status badges and action controls
    * Includes a logout button styled like the applicant page
-2. Job Form (`job-form.html`)
+2. Job Form (`employers/job-form.html`)
    * Create and edit job postings using a form with the same plain UI style
    * Fields: title, company, location, salary, description, status
    * Buttons styled consistently with applicant page controls
@@ -148,7 +148,7 @@ Provide authenticated employers with a dedicated landing page where they can pos
 <div class="header">
   <h1>Employer Dashboard</h1>
   <div>
-    <a class="primary-btn" href="job-form.html">Post Job</a>
+    <a class="primary-btn" href="employers/job-form.html">Post Job</a>
     <button class="logout-btn" onclick="logout()">Logout</button>
   </div>
 </div>
@@ -166,7 +166,7 @@ Provide authenticated employers with a dedicated landing page where they can pos
   <select name="status">
     <option value="Open">Open</option>
     <option value="Closed">Closed</option>
-    <option value="Pending">Pending</option>
+    <option value="Review">Review</option>
   </select>
   <button type="submit">Save Job</button>
   <button type="button" onclick="cancel()">Cancel</button>
@@ -177,11 +177,11 @@ Provide authenticated employers with a dedicated landing page where they can pos
 
 # 7. Frontend Behavior (Vanilla JS)
 
-* On employer login, redirect to `dashboard.html`  
+* On employer login, redirect to `employers/dashboard.html`  
 * Load employer jobs from `/jobs/employer`  
 * Render jobs using the same responsive card grid style as the applicant page  
 * Display visible status badges for each job card  
-* "Post Job" navigates to `job-form.html`  
+* "Post Job" navigates to `employers/job-form.html`  
 * Submit new job via `POST /jobs` and return to dashboard  
 * Edit loads existing job data into the form  
 * Delete sends `DELETE /jobs/:id` and refreshes the dashboard  
@@ -209,7 +209,7 @@ Provide authenticated employers with a dedicated landing page where they can pos
 * `location` (VARCHAR)  
 * `salary` (nullable)  
 * `description` (TEXT)  
-* `status` (`Open` / `Closed` / `Pending`)  
+* `status` (`Open` / `Closed` / `Review`)  
 * `created_at` (TIMESTAMP)  
 
 ---
@@ -221,7 +221,7 @@ Provide authenticated employers with a dedicated landing page where they can pos
 * Extract employer ID from session/JWT  
 * Validate ownership before update/delete  
 * Return employer-specific jobs for dashboard  
-* Support status review values: `Open`, `Closed`, `Pending`  
+* Support status review values: `Open`, `Closed`, `Review`  
 
 ---
 
@@ -258,19 +258,20 @@ Provide authenticated employers with a dedicated landing page where they can pos
     jobs/
     auth/
 
-/frontend
-  dashboard.html
-  job-form.html
+frontend
+  /employers
+    dashboard.html
+    job-form.html
+  login.html
+  register.html
   styles.css
 ```
 
-  script.js
-14. Implementation Notes
+# 14. Implementation Notes
 Use DTOs for validation
 Default status = Open
 Use parameterized queries / ORM methods
 Ensure compatibility with applicant browsing feature
 Sanitize all inputs
-15. Status
 
-Status: ACCEPTED FOR IMPLEMENTATION
+# 15. Status: Approved Ready to implement

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JobSeek - Employer Job Form</title>
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div>
+        <p class="brand">JobSeek</p>
+        <p class="status">Post a New Job</p>
+      </div>
+      <div class="button-group">
+        <button class="view-link" type="button" onclick="goBack()">Back to Dashboard</button>
+        <button class="view-link" type="button" onclick="logout()">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <section class="list-heading">
+      <h1 id="formTitle">Post a Job</h1>
+      <p>Complete the fields below to publish or update a job.</p>
+    </section>
+
+    <form id="jobForm" class="job-card">
+      <label>
+        Job Title
+        <input name="title" placeholder="Job title" required>
+      </label>
+      <label>
+        Company
+        <input name="company" placeholder="Company name" required>
+      </label>
+      <label>
+        Location
+        <input name="location" placeholder="Location" required>
+      </label>
+      <label>
+        Salary
+        <input name="salary" placeholder="Salary">
+      </label>
+      <label>
+        Description
+        <textarea name="description" placeholder="Job description" required></textarea>
+      </label>
+      <label>
+        Status
+        <select name="status">
+          <option value="Open">Open</option>
+          <option value="Closed">Closed</option>
+          <option value="Review">Review</option>
+        </select>
+      </label>
+      <p id="error" class="status error"></p>
+      <div class="button-group">
+        <button class="view-link" type="submit">Save Job</button>
+        <button class="view-link" type="button" onclick="goBack()">Cancel</button>
+      </div>
+    </form>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const jobId = params.get('id');
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      window.location.href = '../login.html';
+    }
+
+    document.getElementById('jobForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const form = event.target;
+      const data = {
+        title: form.title.value.trim(),
+        company: form.company.value.trim(),
+        location: form.location.value.trim(),
+        salary: form.salary.value.trim() || null,
+        description: form.description.value.trim(),
+        status: form.status.value,
+      };
+
+      const url = jobId ? `/jobs/${jobId}` : '/jobs';
+      const method = jobId ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        document.getElementById('error').textContent = errorData.message || 'Unable to save job.';
+        return;
+      }
+
+      window.location.href = 'dashboard.html';
+    });
+
+    function goBack() {
+      window.location.href = 'dashboard.html';
+    }
+
+    function logout() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('role');
+      window.location.href = '../login.html';
+    }
+
+    async function loadJob() {
+      if (!jobId) {
+        return;
+      }
+
+      const response = await fetch(`/jobs/${jobId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        window.location.href = 'dashboard.html';
+        return;
+      }
+
+      const job = await response.json();
+      document.getElementById('formTitle').textContent = 'Edit Job';
+      const form = document.getElementById('jobForm');
+      form.title.value = job.title;
+      form.company.value = job.company;
+      form.location.value = job.location;
+      form.salary.value = job.salary || '';
+      form.description.value = job.description;
+      form.status.value = job.status || 'Open';
+    }
+
+    loadJob();
+  </script>
+</body>
+</html>
