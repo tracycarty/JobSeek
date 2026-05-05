@@ -3,19 +3,22 @@
 **Feature Name:** Employer Job Posting  
 **App Name:** JobSeek  
 **Spec Path:** specs/employer-job-posting.md  
+**Spec Status:** Review / Not Ready for Development  
 
 ---
 
 # 1. Goal
 
-Provide employers with the ability to create, manage, and publish job listings through a REST API and a simple web interface, enabling jobs to appear in the applicant job browsing feature.
+Provide authenticated employers with a dedicated landing page where they can post new job listings, review the status of existing postings, and manage jobs for applicant visibility.
 
 ---
 
 # 2. Scope
 
-* Create new job listings via API  
+* Employer login redirects to an employer dashboard landing page
+* Create new job listings via API and UI  
 * Retrieve employer-specific job listings  
+* View job posting status for review (Open / Closed / Pending)  
 * Update job details  
 * Delete job listings  
 * Control job visibility (Open / Closed)  
@@ -46,16 +49,19 @@ Provide employers with the ability to create, manage, and publish job listings t
 * **REQ_006:** Only the job owner can update/delete the job  
 * **REQ_007:** Job includes title, company, location, salary, description  
 * **REQ_008:** Default job status is `Open`  
-* **REQ_009:** Job status can be updated (Open / Closed)  
+* **REQ_009:** Job status can be updated (Open / Closed / Pending)  
 * **REQ_010:** Use MySQL via TypeORM  
 
 ## Frontend (Minimal / No Framework)
 
-* **REQ_011:** Provide a form to create/edit job postings  
-* **REQ_012:** Display list of employer’s jobs  
-* **REQ_013:** Provide edit and delete controls  
-* **REQ_014:** Show validation and error messages  
-* **REQ_015:** Responsive layout using plain CSS  
+* **REQ_011:** Employer login redirects to the employer dashboard landing page  
+* **REQ_012:** Dashboard displays a clear "Post Job" action  
+* **REQ_013:** Dashboard shows employer job posting statuses for review  
+* **REQ_014:** Provide a form to create/edit job postings  
+* **REQ_015:** Display list of employer’s jobs  
+* **REQ_016:** Provide edit and delete controls  
+* **REQ_017:** Show validation and error messages  
+* **REQ_018:** Responsive layout using plain CSS  
 
 ---
 
@@ -70,19 +76,23 @@ Provide employers with the ability to create, manage, and publish job listings t
   "company": "Tech Corp",
   "location": "Cagayan de Oro",
   "salary": "₱30,000",
-  "description": "Develop web applications"
+  "description": "Develop web applications",
+  "status": "Open"
 }
+```
 
-Response:
-
+**Response:**
+```json
 {
   "message": "Job created successfully",
   "jobId": 1
 }
-GET /jobs/employer
+```
 
-Response:
+## GET /jobs/employer
 
+**Response:**
+```json
 [
   {
     "id": 1,
@@ -91,104 +101,158 @@ Response:
     "created_at": "2026-05-05T10:00:00.000Z"
   }
 ]
-PUT /jobs/:id
+```
 
-Request:
+## PUT /jobs/:id
 
+**Request:**
+```json
 {
   "title": "Updated Title",
   "location": "Remote",
   "status": "Closed"
 }
-DELETE /jobs/:id
+```
 
-Response:
+## DELETE /jobs/:id
 
+**Response:**
+```json
 {
   "message": "Job deleted successfully"
 }
-6. UI Design (No Framework)
-6.1 Pages
-1. Employer Dashboard (dashboard.html)
-Button: "Post Job"
-List of jobs
-Edit/Delete actions
-2. Job Form (job-form.html)
-Input fields
-Submit button
-6.2 Layout Structure
-Dashboard
-<header>
+```
+
+---
+
+# 6. UI Design (No Framework)
+
+## 6.1 Pages
+
+1. Employer Dashboard (`dashboard.html`)
+   * Visible after employer login
+   * Uses the same clean card-based layout as the applicant jobs page
+   * Includes a header with page title, employer landing message, and a prominent "Post Job" button
+   * Displays employer job postings in a responsive grid with status badges and action controls
+   * Includes a logout button styled like the applicant page
+2. Job Form (`job-form.html`)
+   * Create and edit job postings using a form with the same plain UI style
+   * Fields: title, company, location, salary, description, status
+   * Buttons styled consistently with applicant page controls
+   * Shows validation and error messages in the same inline UI style
+
+## 6.2 Layout Structure
+
+**Dashboard**
+```html
+<div class="header">
   <h1>Employer Dashboard</h1>
-  <a href="job-form.html">Post Job</a>
-</header>
+  <div>
+    <a class="primary-btn" href="job-form.html">Post Job</a>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </div>
+</div>
+<div id="job-list"></div>
+```
 
-<main id="job-list"></main>
-Job Form
+**Job Form**
+```html
 <form id="job-form">
-  <input name="title" required>
-  <input name="company" required>
-  <input name="location" required>
-  <input name="salary">
-  <textarea name="description" required></textarea>
-
+  <input name="title" placeholder="Job Title" required>
+  <input name="company" placeholder="Company" required>
+  <input name="location" placeholder="Location" required>
+  <input name="salary" placeholder="Salary">
+  <textarea name="description" placeholder="Job Description" required></textarea>
+  <select name="status">
+    <option value="Open">Open</option>
+    <option value="Closed">Closed</option>
+    <option value="Pending">Pending</option>
+  </select>
   <button type="submit">Save Job</button>
+  <button type="button" onclick="cancel()">Cancel</button>
 </form>
-7. Frontend Behavior (Vanilla JS)
-Create Job Flow
-Fill form
-Submit via fetch() POST /jobs
-Redirect to dashboard
-Load Jobs
-Call /jobs/employer
-Render job list
-Edit/Delete Flow
-Edit → Load existing job data into form
-Delete → Send DELETE request
-Error Handling
-Show validation errors
-Show API error messages
-8. CSS Design
-Approach
-Mobile-first design
-Use Flexbox/Grid
-Minimal and clean layout
-9. Data Model
-Job Entity
-id (INT, PK)
-employer_id (INT, FK)
-title (VARCHAR)
-company (VARCHAR)
-location (VARCHAR)
-salary (nullable)
-description (TEXT)
-status (Open / Closed)
-created_at (TIMESTAMP)
-10. Backend Design
-Architecture
-Controller → Service → Repository
-Rules
-Require authentication middleware
-Extract employer ID from session/JWT
-Validate ownership before update/delete
-Use TypeORM repository pattern
-11. Edge Cases
-Unauthorized access
-Editing non-owned job
-Deleting non-existent job
-Empty required fields
-Invalid job ID
-Invalid status value
-Missing authentication
-12. Acceptance Criteria
-Employer can create a job
-Employer can view their jobs
-Employer can edit and delete jobs
-Only job owner can modify job
-Jobs marked Open appear in applicant browsing
-API responses are correct
-UI works without frontend frameworks
-13. Folder Structure
+```
+
+---
+
+# 7. Frontend Behavior (Vanilla JS)
+
+* On employer login, redirect to `dashboard.html`  
+* Load employer jobs from `/jobs/employer`  
+* Render jobs using the same responsive card grid style as the applicant page  
+* Display visible status badges for each job card  
+* "Post Job" navigates to `job-form.html`  
+* Submit new job via `POST /jobs` and return to dashboard  
+* Edit loads existing job data into the form  
+* Delete sends `DELETE /jobs/:id` and refreshes the dashboard  
+* Display API errors and form validation feedback inline using the same error presentation as the applicant page  
+
+---
+
+# 8. CSS Design
+
+* Use the same color palette, spacing, and card styling as the applicant jobs page  
+* Maintain the same responsive page width and centered container  
+* Use a header panel with white background, rounded corners, and subtle shadow  
+* Use button styles consistent with applicant search and logout buttons  
+* Render job cards with matching box shadow, rounded corners, and hover lift effect  
+
+---
+
+# 9. Data Model
+
+**Job Entity**
+* `id` (INT, PK)  
+* `employer_id` (INT, FK)  
+* `title` (VARCHAR)  
+* `company` (VARCHAR)  
+* `location` (VARCHAR)  
+* `salary` (nullable)  
+* `description` (TEXT)  
+* `status` (`Open` / `Closed` / `Pending`)  
+* `created_at` (TIMESTAMP)  
+
+---
+
+# 10. Backend Design
+
+* Architecture: Controller → Service → Repository  
+* Require authentication middleware  
+* Extract employer ID from session/JWT  
+* Validate ownership before update/delete  
+* Return employer-specific jobs for dashboard  
+* Support status review values: `Open`, `Closed`, `Pending`  
+
+---
+
+# 11. Edge Cases
+
+* Unauthorized access  
+* Editing non-owned job  
+* Deleting non-existent job  
+* Empty required fields  
+* Invalid job ID  
+* Invalid status value  
+* Missing authentication  
+
+---
+
+# 12. Acceptance Criteria
+
+* Employer login redirects to the employer landing page/dashboard  
+* Employer can post a new job from the dashboard  
+* Employer can see posting statuses for review  
+* Employer can edit and delete jobs  
+* Only job owner can modify job  
+* Jobs marked Open appear in applicant browsing  
+* API responses are correct  
+* UI works without frontend frameworks  
+
+---
+
+# 13. Folder Structure
+
+```
 /backend
   /src
     jobs/
@@ -198,6 +262,8 @@ UI works without frontend frameworks
   dashboard.html
   job-form.html
   styles.css
+```
+
   script.js
 14. Implementation Notes
 Use DTOs for validation
