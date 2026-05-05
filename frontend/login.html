@@ -101,7 +101,11 @@
         localStorage.setItem("token", data.access_token);
         localStorage.setItem("role", data.user.role);
 
-        window.location.href = "/applicants/jobs.html";
+        if (data.user.role === 'employee') {
+          window.location.href = 'employers/dashboard.html';
+        } else {
+          window.location.href = 'applicants/jobs.html';
+        }
       } catch (error) {
         errorElement.textContent = "Network error. Please try again.";
       }

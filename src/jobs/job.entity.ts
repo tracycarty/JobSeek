@@ -22,8 +22,14 @@ export class Job {
   @Column({ type: 'varchar', length: 100, nullable: true })
   salary: string | null;
 
+  @Column({ type: 'enum', enum: ['Open', 'Closed', 'Review'], default: 'Open' })
+  status: 'Open' | 'Closed' | 'Review';
+
   @Column({ type: 'text' })
   description: string;
+
+  @Column({ type: 'int', nullable: true, name: 'employer_id' })
+  employer_id: number | null;
 
   @CreateDateColumn({ type: 'timestamp' })
   created_at: Date;
