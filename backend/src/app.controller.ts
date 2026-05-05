@@ -7,12 +7,6 @@ import type { Response } from "express";
 export class AppController {
   @Get()
   showUi(@Res() response: Response) {
-    const indexPath = resolve(process.cwd(), "../frontend/index.html");
-
-    if (!existsSync(indexPath)) {
-      throw new NotFoundException("Frontend not found");
-    }
-
-    return response.sendFile(indexPath);
+    return response.redirect('/login.html');
   }
 }

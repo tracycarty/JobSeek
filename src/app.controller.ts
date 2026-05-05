@@ -6,7 +6,9 @@ import {
   NotFoundException,
   Param,
   Query,
+  Res,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { AppService } from './app.service.js';
 
 @Controller()
@@ -32,9 +34,8 @@ export class AppController {
   }
 
   @Get('index.html')
-  @Header('Content-Type', 'text/html')
-  getJobsPage(): string {
-    return this.appService.getJobsPage();
+  getIndexRedirect(@Res() response: Response) {
+    return response.redirect('/login.html');
   }
 
   @Get('job.html')

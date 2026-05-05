@@ -8,7 +8,7 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.enableCors();
 
-  const frontendPath = resolve(process.cwd(), 'public');
+  const frontendPath = resolve(process.cwd(), 'frontend');
   if (existsSync(frontendPath)) {
     app.useStaticAssets(frontendPath);
   }

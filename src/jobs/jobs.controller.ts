@@ -25,7 +25,7 @@ export class JobsController {
     @Res({ passthrough: true }) response: Response,
   ): Promise<PaginatedJobs> | void {
     if (this.prefersHtml(accept)) {
-      response.redirect('/index.html');
+      response.redirect('/applicants/jobs.html');
       return;
     }
 

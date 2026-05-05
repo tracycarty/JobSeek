@@ -110,7 +110,7 @@ export class AppService {
     return {
       access_token: `jobseek-${randomUUID()}`,
       user: this.toPublicUser(user),
-      redirectTo: user.role === 'applicant' ? '/index.html' : '/',
+      redirectTo: user.role === 'applicant' ? '/applicants/jobs.html' : '/',
     };
   }
 
@@ -162,14 +162,14 @@ export class AppService {
         <button type="submit">Login</button>
         <p id="error" class="error" role="alert"></p>
       </form>
-      <a class="secondary-action" href="/index.html" id="browseJobsLink">Browse Jobs</a>
+      <a class="secondary-action" href="/applicants/jobs.html" id="browseJobsLink">Browse Jobs</a>
       <p class="muted">No account yet? <a href="/register.html">Register</a></p>
     </section>
   </main>
   <script>
     document.getElementById("browseJobsLink").addEventListener("click", (event) => {
       event.preventDefault();
-      window.location.assign("/index.html");
+      window.location.assign("/applicants/jobs.html");
     });
 
     document.getElementById("loginForm").addEventListener("submit", async (event) => {
@@ -193,7 +193,7 @@ export class AppService {
 
       localStorage.setItem("token", data.access_token);
       localStorage.setItem("role", data.user.role);
-      window.location.href = data.user.role === "applicant" ? "/index.html" : (data.redirectTo || "/");
+      window.location.href = data.user.role === "applicant" ? "/applicants/jobs.html" : (data.redirectTo || "/");
     });
   </script>
 </body>
@@ -278,25 +278,7 @@ export class AppService {
       const next = new URLSearchParams();
       const value = document.getElementById("q").value.trim();
       if (value) next.set("q", value);
-      window.location.href = "/index.html" + (next.toString() ? "?" + next.toString() : "");
-    });
-
-    async function loadJobs() {
-      const endpoint = q
-        ? "/ui/jobs/search?q=" + encodeURIComponent(q) + "&page=" + page
-        : "/ui/jobs?page=" + page;
-      const list = document.getElementById("job-list");
-
-      try {
-        const response = await fetch(endpoint);
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.message || "Unable to load jobs");
-        if (!result.data.length) {
-          list.innerHTML = '<p class="empty">No jobs found</p>';
-          document.getElementById("pagination").innerHTML = "";
-          return;
-        }
-
+      window.location.href = "/applicants/jobs.html" + (next.toString() ? "?" + next.toString() : "");
         list.innerHTML = result.data.map((job) => \`
           <article class="job-card">
             <h2>\${job.title}</h2>
@@ -320,7 +302,7 @@ export class AppService {
       const link = document.createElement("a");
       const next = new URLSearchParams(window.location.search);
       next.set("page", targetPage);
-      link.href = "/index.html?" + next.toString();
+      link.href = "/applicants/jobs.html?" + next.toString();
       link.textContent = label;
       return link;
     }
@@ -342,7 +324,7 @@ export class AppService {
 </head>
 <body>
   <main class="detail-shell">
-    <a href="/index.html">Back</a>
+    <a href="/applicants/jobs.html">Back</a>
     <article id="job" class="panel">Loading job...</article>
   </main>
   <script>
