@@ -27,7 +27,7 @@ describe('JobsController', () => {
     );
 
     expect(result).toBeUndefined();
-    expect(response.redirect).toHaveBeenCalledWith('/index.html');
+    expect(response.redirect).toHaveBeenCalledWith('/applicants/jobs.html');
     expect(jobsService.findAll).not.toHaveBeenCalled();
   });
 

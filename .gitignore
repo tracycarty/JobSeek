@@ -1,5 +1,11 @@
-﻿node_modules
+node_modules
 .env
 .env.local
 dist
 build
+coverage
+*.log
+uploads/resumes/*
+uploads/cover-letters/*
+!uploads/resumes/.gitkeep
+!uploads/cover-letters/.gitkeep

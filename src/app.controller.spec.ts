@@ -1,20 +1,21 @@
-`import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from './app.controller.js';
+import { AppService } from './app.service.js';
 
 describe('AppController', () => {
-  let appController: AppController;
+  let controller: AppController;
 
-  beforeEach(async () => {
-    const app: TestingModule = await Test.createTestingModule({
-      controllers: [AppController],
-    }).compile();
-
-    appController = app.get<AppController>(AppController);
+  beforeEach(() => {
+    controller = new AppController({} as AppService);
   });
 
-  describe('root', () => {
-    it('serves the UI route', () => {
-      expect(appController.showUi).toBeInstanceOf(Function);
-    });
+  it('redirects the root route to the login page', () => {
+    const response = {
+      redirect: jest.fn(),
+    };
+
+    const result = controller.redirectRoot(response as never);
+
+    expect(result).toBeUndefined();
+    expect(response.redirect).toHaveBeenCalledWith('/login.html');
   });
 });
