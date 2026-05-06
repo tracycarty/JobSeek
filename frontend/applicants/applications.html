@@ -4,197 +4,31 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobSeek - My Applications</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f5f5f5;
-      padding: 20px;
-    }
-
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-    }
-
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 30px;
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-
-    .header h1 {
-      color: #333;
-      flex: 1;
-    }
-
-    .nav-btn {
-      padding: 10px 20px;
-      background-color: #6c757d;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-block;
-      margin-left: 10px;
-    }
-
-    .nav-btn:hover {
-      background-color: #545b62;
-    }
-
-    .loading {
-      text-align: center;
-      padding: 50px;
-      font-size: 18px;
-      color: #666;
-    }
-
-    .error {
-      text-align: center;
-      padding: 20px;
-      color: #dc3545;
-      font-size: 18px;
-      background-color: #f8d7da;
-      border: 1px solid #f5c6cb;
-      border-radius: 4px;
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 50px;
-      color: #666;
-      font-size: 18px;
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-
-    .applications-list {
-      display: grid;
-      gap: 20px;
-    }
-
-    .application-card {
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      border-left: 4px solid #007bff;
-    }
-
-    .application-card h3 {
-      color: #333;
-      margin-bottom: 5px;
-    }
-
-    .application-meta {
-      color: #666;
-      font-size: 14px;
-      margin-bottom: 15px;
-    }
-
-    .status-badge {
-      display: inline-block;
-      padding: 5px 10px;
-      border-radius: 4px;
-      font-weight: bold;
-      font-size: 12px;
-      margin-right: 10px;
-    }
-
-    .status-pending {
-      background-color: #fff3cd;
-      color: #856404;
-      border: 1px solid #ffeaa7;
-    }
-
-    .status-accepted {
-      background-color: #d4edda;
-      color: #155724;
-      border: 1px solid #c3e6cb;
-    }
-
-    .status-rejected {
-      background-color: #f8d7da;
-      color: #721c24;
-      border: 1px solid #f5c6cb;
-    }
-
-    .applied-date {
-      font-size: 13px;
-      color: #999;
-    }
-
-    .view-btn {
-      padding: 8px 15px;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-
-    .view-btn:hover {
-      background-color: #0056b3;
-    }
-
-    .pagination {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-top: 30px;
-    }
-
-    .pagination button {
-      padding: 8px 12px;
-      border: 1px solid #ddd;
-      background-color: white;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    .pagination button:hover {
-      background-color: #f5f5f5;
-    }
-
-    .pagination button.active {
-      background-color: #007bff;
-      color: white;
-      border-color: #007bff;
-    }
-
-    .pagination button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-  </style>
+  <link rel="stylesheet" href="../styles.css">
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>My Applications</h1>
+  <header class="site-header">
+    <div class="header-inner">
       <div>
-        <a href="/applicants/jobs.html" class="nav-btn">← Browse Jobs</a>
+        <p class="brand"><span class="brand-mark">JS</span>JobSeek</p>
+        <p class="header-kicker">Applicant Workspace</p>
+      </div>
+      <div class="button-group">
+        <a href="/applicants/jobs.html" class="nav-btn">Browse Jobs</a>
       </div>
     </div>
+  </header>
+
+  <main class="page-shell detail-page">
+    <section class="list-heading">
+      <h1>My Applications</h1>
+      <p>Review the roles you applied to and follow each application status.</p>
+    </section>
 
     <div id="content">
       <div class="loading">Loading your applications...</div>
     </div>
-  </div>
+  </main>
 
   <script>
     let currentPage = 1;
@@ -214,9 +48,9 @@
           `/applications/me?page=${page}&limit=${pageSize}`,
           {
             headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          }
+              Authorization: `Bearer ${token}`,
+            },
+          },
         );
 
         if (response.status === 401) {
@@ -234,7 +68,7 @@
         currentPage = page;
         renderApplications(data);
       } catch (error) {
-        content.innerHTML = `<div class="error">Failed to load applications: ${error.message}</div>`;
+        content.innerHTML = `<div class="error">Failed to load applications: ${escapeHtml(error.message)}</div>`;
       }
     }
 
@@ -242,49 +76,50 @@
       const content = document.getElementById('content');
 
       if (!data.data || data.data.length === 0) {
-        content.innerHTML = '<div class="empty-state">You haven\'t applied to any jobs yet.</div>';
+        content.innerHTML = '<div class="empty-state">You have not applied to any jobs yet.</div>';
         return;
       }
 
-      const applicationsHtml = data.data.map(app => {
+      const applicationsHtml = data.data.map((app) => {
         const statusClass = `status-${app.status.toLowerCase()}`;
         const appliedDate = new Date(app.appliedAt).toLocaleDateString('en-US', {
           year: 'numeric',
           month: 'short',
           day: 'numeric',
           hour: '2-digit',
-          minute: '2-digit'
+          minute: '2-digit',
         });
 
         return `
-          <div class="application-card">
-            <h3>${app.jobTitle}</h3>
-            <div class="application-meta">
-              <span class="status-badge ${statusClass}">${app.status}</span>
-              <span class="applied-date">Applied: ${appliedDate}</span>
+          <article class="application-card">
+            <div class="card-title-row">
+              <h3>${escapeHtml(app.jobTitle)}</h3>
+              <span class="status-badge ${statusClass}">${escapeHtml(app.status)}</span>
             </div>
-            <button class="view-btn" onclick="viewJobDetail(${app.jobId})">View Job</button>
-          </div>
+            <p class="application-meta">Applied: ${appliedDate}</p>
+            <div class="button-group">
+              <button class="view-btn" type="button" onclick="viewJobDetail(${app.jobId})">View Job</button>
+            </div>
+          </article>
         `;
       }).join('');
 
       let html = `<div class="applications-list">${applicationsHtml}</div>`;
 
-      // Add pagination if needed
       if (data.pagination && data.pagination.totalPages > 1) {
         html += '<div class="pagination">';
 
         if (currentPage > 1) {
-          html += `<button onclick="loadApplications(${currentPage - 1})">← Previous</button>`;
+          html += `<button type="button" onclick="loadApplications(${currentPage - 1})">Previous</button>`;
         }
 
-        for (let i = 1; i <= data.pagination.totalPages; i++) {
+        for (let i = 1; i <= data.pagination.totalPages; i += 1) {
           const activeClass = i === currentPage ? 'active' : '';
-          html += `<button onclick="loadApplications(${i})" class="${activeClass}">${i}</button>`;
+          html += `<button type="button" onclick="loadApplications(${i})" class="${activeClass}">${i}</button>`;
         }
 
         if (currentPage < data.pagination.totalPages) {
-          html += `<button onclick="loadApplications(${currentPage + 1})">Next →</button>`;
+          html += `<button type="button" onclick="loadApplications(${currentPage + 1})">Next</button>`;
         }
 
         html += '</div>';
@@ -297,7 +132,15 @@
       window.location.href = `/applicants/job-detail.html?id=${jobId}`;
     }
 
-    // Load applications on page load
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
     const token = localStorage.getItem('token');
     if (!token) {
       window.location.href = '/login.html';

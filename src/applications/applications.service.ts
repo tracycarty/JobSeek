@@ -47,6 +47,11 @@ export interface PaginatedApplications {
   pagination: PaginationMeta;
 }
 
+export interface ApplicationFileDownload {
+  path: string;
+  filename: string;
+}
+
 @Injectable()
 export class ApplicationsService {
   private readonly uploadsDir = path.join(process.cwd(), 'uploads');
@@ -300,6 +305,51 @@ export class ApplicationsService {
 
     application.status = dto.status;
     return this.applicationsRepository.save(application);
+  }
+
+  async getApplicationFile(
+    applicationId: number,
+    userId: number,
+    type: 'resume' | 'cover-letter',
+  ): Promise<ApplicationFileDownload> {
+    const application = await this.applicationsRepository.findOne({
+      where: { id: applicationId },
+      relations: ['job'],
+    });
+
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    const isApplicant = application.applicantId === userId;
+    const isEmployer = application.job.employer_id === userId;
+    if (!isApplicant && !isEmployer) {
+      throw new ForbiddenException('You cannot access this application file');
+    }
+
+    const storedPath =
+      type === 'resume' ? application.resumePath : application.coverLetterPath;
+    if (!storedPath) {
+      throw new NotFoundException('File not found');
+    }
+
+    const absolutePath = path.resolve(process.cwd(), storedPath);
+    const uploadsRoot = path.resolve(this.uploadsDir);
+    if (
+      absolutePath !== uploadsRoot &&
+      !absolutePath.startsWith(`${uploadsRoot}${path.sep}`)
+    ) {
+      throw new ForbiddenException('Invalid file path');
+    }
+
+    if (!fs.existsSync(absolutePath)) {
+      throw new NotFoundException('File not found');
+    }
+
+    return {
+      path: absolutePath,
+      filename: path.basename(storedPath),
+    };
   }
 
   private async findOwnedJob(jobId: number, employerId: number): Promise<Job> {

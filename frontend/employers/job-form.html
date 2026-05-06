@@ -10,8 +10,8 @@
   <header class="site-header">
     <div class="header-inner">
       <div>
-        <p class="brand">JobSeek</p>
-        <p class="status">Post a New Job</p>
+        <p class="brand"><span class="brand-mark">JS</span>JobSeek</p>
+        <p class="header-kicker">Post a New Job</p>
       </div>
       <div class="button-group">
         <button class="view-link" type="button" onclick="goBack()">Back to Dashboard</button>
@@ -20,13 +20,13 @@
     </div>
   </header>
 
-  <main class="page-shell">
+  <main class="page-shell form-page">
     <section class="list-heading">
       <h1 id="formTitle">Post a Job</h1>
       <p>Complete the fields below to publish or update a job.</p>
     </section>
 
-    <form id="jobForm" class="job-card">
+    <form id="jobForm" class="job-card form-grid">
       <label>
         Job Title
         <input name="title" placeholder="Job title" required>
@@ -43,7 +43,7 @@
         Salary
         <input name="salary" placeholder="Salary">
       </label>
-      <label>
+      <label class="wide">
         Description
         <textarea name="description" placeholder="Job description" required></textarea>
       </label>

@@ -4,86 +4,26 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobSeek - Login</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 400px;
-      margin: 50px auto;
-      padding: 20px;
-      background-color: #f5f5f5;
-    }
-    .container {
-      background: white;
-      padding: 30px;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    h2 {
-      text-align: center;
-      color: #333;
-      margin-bottom: 30px;
-      font-size: 32px;
-    }
-    input {
-      width: 100%;
-      padding: 12px;
-      margin: 8px 0;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      box-sizing: border-box;
-    }
-    label {
-      display: block;
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 5px;
-      margin-top: 15px;
-    }
-    button {
-      width: 100%;
-      padding: 12px;
-      background-color: #008080;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 16px;
-      margin-top: 20px;
-      font-weight: 600;
-    }
-    button:hover {
-      background-color: #006666;
-    }
-    .error {
-      color: #dc3545;
-      text-align: center;
-      margin-top: 10px;
-    }
-    .link {
-      text-align: center;
-      margin-top: 20px;
-    }
-    .link a {
-      color: #007bff;
-      text-decoration: none;
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-  <div class="container">
-    <h2>JobSeek</h2>
+<body class="auth-page">
+  <main class="auth-card">
+    <h1><span class="brand-mark">JS</span>JobSeek</h1>
+    <p class="status">Sign in to continue your hiring or job search workspace.</p>
     <form id="loginForm">
       <label for="email">Email</label>
-      <input type="email" id="email" placeholder="Email" required>
+      <input type="email" id="email" placeholder="you@example.com" required>
+
       <label for="password">Password</label>
-      <input type="password" id="password" placeholder="Password" required>
+      <input type="password" id="password" placeholder="Enter your password" required>
+
       <button type="submit">Login</button>
     </form>
-    <p id="error" class="error"></p>
-    <div class="link">
+    <p id="error" class="status error"></p>
+    <div class="auth-link">
       No account yet? <a href="register.html">Register</a>
     </div>
-  </div>
+  </main>
 
   <script>
     document.getElementById("loginForm").addEventListener("submit", async (e) => {

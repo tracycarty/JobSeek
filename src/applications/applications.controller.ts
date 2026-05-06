@@ -6,6 +6,7 @@ import {
   Param,
   Body,
   Query,
+  Res,
   UseGuards,
   UseInterceptors,
   UploadedFiles,
@@ -14,7 +15,7 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
-import type { Express } from 'express';
+import type { Response } from 'express';
 import { JwtAuthGuard } from '../jwt-auth.guard.js';
 import { ApplicationsService } from './applications.service.js';
 import { CreateApplicationDto } from './dto/create-application.dto.js';
@@ -79,6 +80,38 @@ export class ApplicationsController {
       userId,
       query,
     );
+  }
+
+  @Get(':id/files/:type')
+  async downloadApplicationFile(
+    @Param('id') id: string,
+    @Param('type') type: string,
+    @CurrentUser() userId: number,
+    @Res() response: Response,
+  ) {
+    const parsedId = Number(id);
+
+    if (!Number.isInteger(parsedId) || parsedId < 1) {
+      throw new HttpException(
+        { statusCode: HttpStatus.BAD_REQUEST, message: 'Invalid application ID' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (type !== 'resume' && type !== 'cover-letter') {
+      throw new HttpException(
+        { statusCode: HttpStatus.BAD_REQUEST, message: 'Invalid file type' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const file = await this.applicationsService.getApplicationFile(
+      parsedId,
+      userId,
+      type,
+    );
+
+    return response.download(file.path, file.filename);
   }
 
   @Patch(':id/status')
