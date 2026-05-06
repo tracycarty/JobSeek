@@ -108,6 +108,20 @@ a:focus {
   color: var(--muted);
 }
 
+.dashboard-section {
+  margin-top: 2rem;
+}
+
+.section-heading h2 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.section-heading p {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+}
+
 .status {
   margin-top: 1rem;
   color: var(--muted);
@@ -142,6 +156,18 @@ a:focus {
   font-size: 1.2rem;
 }
 
+.card-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.card-title-row h1,
+.card-title-row h2 {
+  min-width: 0;
+}
+
 .job-meta,
 .salary,
 .posted-date {
@@ -162,6 +188,121 @@ a:focus {
   margin-top: 1rem;
   padding: 0 0.9rem;
   border-radius: 6px;
+}
+
+.secondary-link {
+  background: #eef5f3;
+  color: var(--primary);
+  border: 1px solid #bfd8d0;
+}
+
+.secondary-link:hover {
+  background: #dcece8;
+  color: var(--primary-dark);
+}
+
+.button-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.button-group .view-link {
+  margin-top: 1rem;
+}
+
+.button-group .view-link:disabled,
+.button-group .view-link[disabled] {
+  background: #c7d0dc;
+  border-color: #c7d0dc;
+  color: #ffffff;
+  cursor: not-allowed;
+}
+
+.status-badge {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  padding: 0.2rem 0.55rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.status-open {
+  background: #e7f6ee;
+  border-color: #a8dabc;
+  color: #17614f;
+}
+
+.status-closed {
+  background: #f8e9ee;
+  border-color: #e7b6c6;
+  color: #8b2945;
+}
+
+.status-review {
+  background: #fff4d6;
+  border-color: #e5c46e;
+  color: #7a5800;
+}
+
+.status-pending {
+  background: #fff4d6;
+  border-color: #e5c46e;
+  color: #7a5800;
+}
+
+.status-accepted {
+  background: #e7f6ee;
+  border-color: #a8dabc;
+  color: #17614f;
+}
+
+.status-rejected {
+  background: #f8e9ee;
+  border-color: #e7b6c6;
+  color: #8b2945;
+}
+
+.danger-link {
+  background: var(--accent);
+}
+
+.danger-link:hover {
+  background: #98284a;
+}
+
+.application-list {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.application-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.application-facts {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.fact-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.fact-label {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.empty-card {
+  grid-column: 1 / -1;
 }
 
 .pagination {

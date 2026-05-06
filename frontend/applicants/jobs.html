@@ -16,11 +16,22 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 20px;
       margin-bottom: 30px;
       background: white;
       padding: 20px;
       border-radius: 8px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .header h1 {
+      margin: 0;
+      color: #333;
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
     }
     .search-form {
       display: flex;
@@ -34,24 +45,31 @@
       border: 1px solid #ddd;
       border-radius: 4px;
     }
-    .search-form button {
+    .search-form button,
+    .nav-btn,
+    .logout-btn {
       padding: 10px 20px;
-      background-color: #007bff;
       color: white;
       border: none;
       border-radius: 4px;
       cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .search-form button {
+      background-color: #007bff;
     }
     .search-form button:hover {
       background-color: #0056b3;
     }
+    .nav-btn {
+      background-color: #6c757d;
+    }
+    .nav-btn:hover {
+      background-color: #545b62;
+    }
     .logout-btn {
-      padding: 10px 20px;
       background-color: #dc3545;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
     }
     .logout-btn:hover {
       background-color: #c82333;
@@ -93,6 +111,29 @@
     }
     .job-card a:hover {
       text-decoration: underline;
+    }
+    .application-status {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    .status-pending {
+      background-color: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeaa7;
+    }
+    .status-accepted {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .status-rejected {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
     }
     .pagination {
       display: flex;
@@ -139,7 +180,10 @@
       <input type="text" id="searchInput" placeholder="Search jobs..." value="">
       <button type="submit">Search</button>
     </form>
-    <button class="logout-btn" onclick="logout()">Logout</button>
+    <div class="header-actions">
+      <a href="/applicants/applications.html" class="nav-btn">My Applications</a>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
   </div>
 
   <div id="content">
@@ -149,6 +193,7 @@
   <script>
     let currentPage = 1;
     let currentQuery = '';
+    let applicationStatusByJob = {};
 
     async function fetchJobs(page = 1, query = '') {
       const content = document.getElementById('content');
@@ -163,23 +208,34 @@
         const token = localStorage.getItem('token');
         const headers = {};
         if (token) {
-          headers['Authorization'] = `Bearer ${token}`;
+          headers.Authorization = `Bearer ${token}`;
         }
 
-        const response = await fetch(url, { headers });
+        const [jobsResponse, applicationsResponse] = await Promise.all([
+          fetch(url, { headers }),
+          fetch('/applications/me?page=1&limit=100', { headers }),
+        ]);
 
-        if (response.status === 401) {
-          // Token expired or invalid
+        if (jobsResponse.status === 401 || applicationsResponse.status === 401) {
           logout();
           return;
         }
 
-        if (!response.ok) {
+        if (!jobsResponse.ok) {
           throw new Error('Failed to fetch jobs');
         }
 
-        const data = await response.json();
-        renderJobs(data);
+        const jobsData = await jobsResponse.json();
+        applicationStatusByJob = {};
+
+        if (applicationsResponse.ok) {
+          const applicationsData = await applicationsResponse.json();
+          for (const application of applicationsData.data || []) {
+            applicationStatusByJob[application.jobId] = application.status;
+          }
+        }
+
+        renderJobs(jobsData);
       } catch (error) {
         content.innerHTML = '<div class="error">Failed to load jobs. Please try again.</div>';
       }
@@ -195,13 +251,19 @@
 
       let html = '<div class="jobs-grid">';
 
-      jobs.forEach(job => {
+      jobs.forEach((job) => {
+        const applicationStatus = applicationStatusByJob[job.id];
+        const applicationStatusHtml = applicationStatus
+          ? `<span class="application-status status-${applicationStatus.toLowerCase()}">Application: ${escapeHtml(applicationStatus)}</span>`
+          : '';
+
         html += `
           <div class="job-card">
-            <h3>${job.title}</h3>
-            <p><strong>Company:</strong> ${job.company}</p>
-            <p><strong>Location:</strong> ${job.location}</p>
-            <p class="salary"><strong>Salary:</strong> ${job.salary || 'Not specified'}</p>
+            <h3>${escapeHtml(job.title)}</h3>
+            <p><strong>Company:</strong> ${escapeHtml(job.company)}</p>
+            <p><strong>Location:</strong> ${escapeHtml(job.location)}</p>
+            <p class="salary"><strong>Salary:</strong> ${escapeHtml(job.salary || 'Not specified')}</p>
+            ${applicationStatusHtml}
             <a href="job-detail.html?id=${job.id}">View Details</a>
           </div>
         `;
@@ -209,27 +271,35 @@
 
       html += '</div>';
 
-      // Pagination
       if (pagination.totalPages > 1) {
         html += '<div class="pagination">';
 
         if (pagination.page > 1) {
-          html += `<a href="#" onclick="changePage(${pagination.page - 1})">Previous</a>`;
+          html += `<a href="#" onclick="changePage(${pagination.page - 1}); return false;">Previous</a>`;
         }
 
-        for (let i = Math.max(1, pagination.page - 2); i <= Math.min(pagination.totalPages, pagination.page + 2); i++) {
+        for (let i = Math.max(1, pagination.page - 2); i <= Math.min(pagination.totalPages, pagination.page + 2); i += 1) {
           const activeClass = i === pagination.page ? 'active' : '';
-          html += `<a href="#" class="${activeClass}" onclick="changePage(${i})">${i}</a>`;
+          html += `<a href="#" class="${activeClass}" onclick="changePage(${i}); return false;">${i}</a>`;
         }
 
         if (pagination.page < pagination.totalPages) {
-          html += `<a href="#" onclick="changePage(${pagination.page + 1})">Next</a>`;
+          html += `<a href="#" onclick="changePage(${pagination.page + 1}); return false;">Next</a>`;
         }
 
         html += '</div>';
       }
 
       document.getElementById('content').innerHTML = html;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
     }
 
     function changePage(page) {
@@ -243,17 +313,14 @@
       window.location.href = '/login.html';
     }
 
-    // Check authentication
     const token = localStorage.getItem('token');
     if (!token) {
       window.location.href = '/login.html';
     } else {
-      // Load jobs on page load
       fetchJobs();
 
-      // Handle search form
-      document.getElementById('searchForm').addEventListener('submit', (e) => {
-        e.preventDefault();
+      document.getElementById('searchForm').addEventListener('submit', (event) => {
+        event.preventDefault();
         currentQuery = document.getElementById('searchInput').value.trim();
         currentPage = 1;
         fetchJobs(currentPage, currentQuery);

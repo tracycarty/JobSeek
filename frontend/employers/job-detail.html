@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JobSeek - Employer Job Details</title>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="header-inner">
+        <div>
+          <p class="brand">JobSeek</p>
+          <p class="status">Employer Dashboard</p>
+        </div>
+        <div class="button-group">
+          <a class="view-link secondary-link" href="dashboard.html">Jobs</a>
+          <a class="view-link" id="editLink" href="job-form.html">Edit</a>
+          <button class="view-link" type="button" onclick="logout()">
+            Logout
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="page-shell detail-page">
+      <a class="back-link" href="dashboard.html">Back to dashboard</a>
+
+      <p id="statusMessage" class="status">Loading job...</p>
+
+      <article id="jobDetail" class="job-detail">
+        <div class="card-title-row">
+          <h1 id="jobTitle"></h1>
+          <span id="jobStatus" class="status-badge"></span>
+        </div>
+        <p id="jobMeta" class="job-meta"></p>
+        <p id="jobSalary" class="salary"></p>
+        <p id="postedDate" class="posted-date"></p>
+
+        <section>
+          <h2>Description</h2>
+          <p id="jobDescription"></p>
+        </section>
+      </article>
+    </main>
+
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const jobId = params.get('id');
+      const token = localStorage.getItem('token');
+
+      if (!token) {
+        window.location.href = '/login.html';
+      }
+
+      if (!jobId) {
+        window.location.href = 'dashboard.html';
+      }
+
+      async function loadJob() {
+        const response = await fetch(`/jobs/${jobId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.status === 401) {
+          logout();
+          return;
+        }
+
+        if (!response.ok) {
+          document.getElementById('statusMessage').textContent =
+            'Unable to load this job.';
+          return;
+        }
+
+        const job = await response.json();
+        document.getElementById('editLink').href = `job-form.html?id=${job.id}`;
+        document.getElementById('jobTitle').textContent = job.title;
+        document.getElementById('jobMeta').textContent =
+          `${job.company} - ${job.location}`;
+        document.getElementById('jobSalary').textContent =
+          job.salary || 'Salary not specified';
+        document.getElementById('postedDate').textContent =
+          `Posted: ${formatDate(job.created_at)}`;
+        document.getElementById('jobDescription').textContent = job.description;
+
+        const status = document.getElementById('jobStatus');
+        status.textContent = job.status || 'Open';
+        status.className = `status-badge ${statusClass(job.status)}`;
+
+        document.getElementById('statusMessage').textContent = '';
+        document.getElementById('jobDetail').classList.add('is-visible');
+      }
+
+      function statusClass(status) {
+        return `status-${String(status || 'Open').toLowerCase()}`;
+      }
+
+      function formatDate(value) {
+        if (!value) {
+          return 'Date unavailable';
+        }
+
+        return new Date(value).toLocaleDateString();
+      }
+
+      function logout() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        window.location.href = '/login.html';
+      }
+
+      loadJob();
+    </script>
+  </body>
+</html>

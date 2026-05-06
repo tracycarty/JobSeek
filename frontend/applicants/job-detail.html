@@ -40,6 +40,7 @@
       padding: 30px;
       border-radius: 8px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
     }
     .job-detail h1 {
       color: #333;
@@ -65,6 +66,61 @@
       margin-top: 30px;
       margin-bottom: 15px;
     }
+    .apply-section {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .apply-section h2 {
+      color: #333;
+      margin-top: 0;
+      margin-bottom: 20px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #333;
+    }
+    .form-group input[type="text"],
+    .form-group input[type="number"],
+    .form-group input[type="tel"],
+    .form-group input[type="file"] {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font: inherit;
+      background: white;
+    }
+    .form-group .help-text {
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
+    }
+    .apply-btn {
+      padding: 12px 30px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+    }
+    .apply-btn:hover {
+      background-color: #0056b3;
+    }
+    .apply-btn:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
     .loading {
       text-align: center;
       padding: 50px;
@@ -77,11 +133,50 @@
       color: #dc3545;
       font-size: 18px;
     }
+    .success-message {
+      color: #28a745;
+      padding: 15px;
+      background-color: #d4edda;
+      border: 1px solid #c3e6cb;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+    .status-pill {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    .status-pending {
+      background-color: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeaa7;
+    }
+    .status-accepted {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .status-rejected {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .error-message {
+      color: #dc3545;
+      padding: 15px;
+      background-color: #f8d7da;
+      border: 1px solid #f5c6cb;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
   </style>
 </head>
 <body>
   <div class="header">
-    <a href="/applicants/jobs.html" class="back-btn">← Back to Jobs</a>
+    <a href="/applicants/jobs.html" class="back-btn">Back to Jobs</a>
     <h1>Job Details</h1>
     <div></div>
   </div>
@@ -91,10 +186,10 @@
   </div>
 
   <script>
+    let currentJobId = null;
+
     async function loadJobDetails() {
       const content = document.getElementById('content');
-
-      // Get job ID from URL query parameter
       const urlParams = new URLSearchParams(window.location.search);
       const jobId = urlParams.get('id');
 
@@ -103,17 +198,18 @@
         return;
       }
 
+      currentJobId = jobId;
+
       try {
         const token = localStorage.getItem('token');
         const headers = {};
         if (token) {
-          headers['Authorization'] = `Bearer ${token}`;
+          headers.Authorization = `Bearer ${token}`;
         }
 
         const response = await fetch(`/jobs/${jobId}`, { headers });
 
         if (response.status === 401) {
-          // Token expired or invalid
           localStorage.removeItem('token');
           localStorage.removeItem('role');
           window.location.href = '/login.html';
@@ -131,32 +227,263 @@
 
         const job = await response.json();
         renderJobDetails(job);
+        checkApplicationStatus(jobId);
       } catch (error) {
         content.innerHTML = '<div class="error">Failed to load job details. Please try again.</div>';
+      }
+    }
+
+    async function checkApplicationStatus(jobId) {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          return;
+        }
+
+        const response = await fetch('/applications/me', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          return;
+        }
+
+        const data = await response.json();
+        const existingApplication = (data.data || []).find(
+          (application) => application.jobId == jobId,
+        );
+
+        if (existingApplication) {
+          const applyForm = document.getElementById('applyForm');
+          if (applyForm) {
+            applyForm.innerHTML = `
+              <div class="success-message">
+                You have already applied to this job.
+                <div class="status-pill status-${existingApplication.status.toLowerCase()}">
+                  Current status: ${escapeHtml(existingApplication.status)}
+                </div>
+              </div>
+            `;
+          }
+        }
+      } catch (error) {
+        console.error('Failed to check application status:', error);
       }
     }
 
     function renderJobDetails(job) {
       const html = `
         <div class="job-detail">
-          <h1>${job.title}</h1>
+          <h1>${escapeHtml(job.title)}</h1>
           <div class="job-meta">
-            <strong>${job.company}</strong> - ${job.location}
+            <strong>${escapeHtml(job.company)}</strong> - ${escapeHtml(job.location)}
           </div>
           <div class="salary">
-            Salary: ${job.salary || 'Not specified'}
+            Salary: ${escapeHtml(job.salary || 'Not specified')}
           </div>
           <div class="description">
             <h2>Job Description</h2>
-            <p>${job.description.replace(/\n/g, '<br>')}</p>
+            <p>${escapeHtml(job.description).replace(/\n/g, '<br>')}</p>
           </div>
         </div>
       `;
 
       document.getElementById('content').innerHTML = html;
+
+      const applySectionHtml = `
+        <div class="apply-section">
+          <h2>Apply for this Job</h2>
+          <div id="applyForm">
+            <form id="applicationForm">
+              <div class="form-group">
+                <label for="fullName">Full Name</label>
+                <input
+                  type="text"
+                  id="fullName"
+                  name="fullName"
+                  placeholder="Enter your full name"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="address">Address</label>
+                <input
+                  type="text"
+                  id="address"
+                  name="address"
+                  placeholder="Enter your address"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="age">Age</label>
+                <input
+                  type="number"
+                  id="age"
+                  name="age"
+                  min="16"
+                  max="120"
+                  placeholder="Enter your age"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="phoneNumber">Phone Number</label>
+                <input
+                  type="tel"
+                  id="phoneNumber"
+                  name="phoneNumber"
+                  placeholder="Enter your phone number"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="resume">Resume (Required)</label>
+                <input
+                  type="file"
+                  id="resume"
+                  name="resume"
+                  accept=".pdf,.doc,.docx"
+                  required
+                />
+                <div class="help-text">Accepted formats: PDF, DOC, DOCX (Max 5MB)</div>
+              </div>
+
+              <div class="form-group">
+                <label for="coverLetter">Cover Letter (Optional)</label>
+                <input
+                  type="file"
+                  id="coverLetter"
+                  name="coverLetter"
+                  accept=".pdf,.doc,.docx"
+                />
+                <div class="help-text">Accepted formats: PDF, DOC, DOCX (Max 5MB)</div>
+              </div>
+
+              <button type="submit" class="apply-btn" id="submitBtn">Apply Now</button>
+            </form>
+            <div id="messageContainer"></div>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('content').innerHTML += applySectionHtml;
+
+      const form = document.getElementById('applicationForm');
+      if (form) {
+        form.addEventListener('submit', handleApplicationSubmit);
+      }
     }
 
-    // Check authentication
+    async function handleApplicationSubmit(event) {
+      event.preventDefault();
+
+      const token = localStorage.getItem('token');
+      if (!token) {
+        window.location.href = '/login.html';
+        return;
+      }
+
+      const submitBtn = document.getElementById('submitBtn');
+      const messageContainer = document.getElementById('messageContainer');
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+      messageContainer.innerHTML = '';
+
+      try {
+        const formData = new FormData();
+        const fullName = document.getElementById('fullName').value.trim();
+        const address = document.getElementById('address').value.trim();
+        const age = document.getElementById('age').value.trim();
+        const phoneNumber = document.getElementById('phoneNumber').value.trim();
+
+        if (!fullName) {
+          throw new Error('Full name is required');
+        }
+
+        if (!address) {
+          throw new Error('Address is required');
+        }
+
+        if (!age) {
+          throw new Error('Age is required');
+        }
+
+        if (!phoneNumber) {
+          throw new Error('Phone number is required');
+        }
+
+        formData.append('jobId', currentJobId);
+        formData.append('fullName', fullName);
+        formData.append('address', address);
+        formData.append('age', age);
+        formData.append('phoneNumber', phoneNumber);
+
+        const resumeFile = document.getElementById('resume').files[0];
+        if (!resumeFile) {
+          throw new Error('Resume is required');
+        }
+        formData.append('resume', resumeFile);
+
+        const coverLetterFile = document.getElementById('coverLetter').files[0];
+        if (coverLetterFile) {
+          formData.append('coverLetter', coverLetterFile);
+        }
+
+        const response = await fetch('/applications', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        });
+
+        if (response.status === 409) {
+          messageContainer.innerHTML =
+            '<div class="error-message">You have already applied to this job.</div>';
+        } else if (response.status === 400) {
+          const error = await response.json();
+          const message = Array.isArray(error.message)
+            ? error.message.join(', ')
+            : error.message;
+          messageContainer.innerHTML = `<div class="error-message">Error: ${message}</div>`;
+        } else if (response.status === 401) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('role');
+          window.location.href = '/login.html';
+          return;
+        } else if (!response.ok) {
+          throw new Error('Failed to submit application');
+        } else {
+          messageContainer.innerHTML =
+            '<div class="success-message">Application submitted successfully.<div class="status-pill status-pending">Current status: PENDING</div></div>';
+          document.getElementById('applicationForm').reset();
+          submitBtn.style.display = 'none';
+        }
+      } catch (error) {
+        messageContainer.innerHTML = `<div class="error-message">Error: ${error.message}</div>`;
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Apply Now';
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
     const token = localStorage.getItem('token');
     if (!token) {
       window.location.href = '/login.html';

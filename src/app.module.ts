@@ -5,8 +5,10 @@ import { getDatabaseConfig } from './config/database.config.js';
 import { loadEnv } from './config/load-env.js';
 import { JobsModule } from './jobs/jobs.module.js';
 import { AuthModule } from './auth.module.js';
+import { ApplicationsModule } from './applications/applications.module.js';
 import { User } from './user.entity.js';
 import { Job } from './jobs/job.entity.js';
+import { Application } from './applications/application.entity.js';
 import { AppService } from './app.service.js';
 
 loadEnv();
@@ -15,10 +17,11 @@ loadEnv();
   imports: [
     TypeOrmModule.forRoot({
       ...getDatabaseConfig(),
-      entities: [Job, User],
+      entities: [Job, User, Application],
     }),
     JobsModule,
     AuthModule,
+    ApplicationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -22,20 +22,78 @@
 
   <main class="page-shell">
     <section class="list-heading">
-      <h1>Your Job Postings</h1>
-      <p>Review all posted jobs and their current status.</p>
+      <h1>Employer Workspace</h1>
+      <p>Track incoming applications and keep an eye on the jobs you have posted.</p>
     </section>
 
     <div id="statusMessage" class="status"></div>
 
-    <div class="job-list" id="jobList">
-      <div class="job-card">
-        <h2>Loading jobs...</h2>
+    <section class="dashboard-section">
+      <div class="section-heading">
+        <h2>Applicant Applications</h2>
+        <p>Review applicant details and update the current application status.</p>
       </div>
-    </div>
+
+      <div class="job-list application-list" id="applicationList">
+        <div class="job-card">
+          <h2>Loading applications...</h2>
+        </div>
+      </div>
+
+      <div class="pagination" id="pagination"></div>
+    </section>
+
+    <section class="dashboard-section">
+      <div class="section-heading">
+        <h2>Your Posted Jobs</h2>
+        <p>Open, edit, or remove the jobs you have published.</p>
+      </div>
+
+      <div class="job-list employer-job-list" id="jobList">
+        <div class="job-card">
+          <h2>Loading jobs...</h2>
+        </div>
+      </div>
+    </section>
   </main>
 
   <script>
+    let currentPage = 1;
+    const pageSize = 9;
+
+    async function loadDashboard(page = 1) {
+      await Promise.all([fetchApplications(page), fetchJobs()]);
+    }
+
+    async function fetchApplications(page = 1) {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        window.location.href = '/login.html';
+        return;
+      }
+
+      const response = await fetch(`/applications/employer?page=${page}&limit=${pageSize}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.status === 401) {
+        logout();
+        return;
+      }
+
+      if (!response.ok) {
+        setStatus('Failed to load applications.');
+        renderApplications([], null);
+        return;
+      }
+
+      const result = await response.json();
+      currentPage = result.pagination?.page || page;
+      renderApplications(result.data || [], result.pagination || null);
+    }
+
     async function fetchJobs() {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -54,14 +112,95 @@
         return;
       }
 
+      if (!response.ok) {
+        setStatus('Failed to load posted jobs.');
+        renderJobs([]);
+        return;
+      }
+
       const result = await response.json();
       renderJobs(result);
+    }
+
+    function renderApplications(applications, pagination) {
+      const applicationList = document.getElementById('applicationList');
+      if (!applications || applications.length === 0) {
+        applicationList.innerHTML = `
+          <div class="job-card empty-card">
+            <h2>No applications yet.</h2>
+            <p class="job-meta">Applicant submissions will appear here as soon as people apply to your jobs.</p>
+          </div>
+        `;
+        renderPagination(null);
+        return;
+      }
+
+      applicationList.innerHTML = applications
+        .map(
+          (application) => `
+          <div class="job-card application-card">
+            <div class="card-title-row">
+              <div>
+                <h2>${escapeHtml(application.fullName)}</h2>
+                <p class="job-meta">Applied for ${escapeHtml(application.jobTitle || 'Untitled role')} at ${escapeHtml(application.jobCompany || 'Unknown company')}</p>
+              </div>
+              <span class="status-badge ${statusClass(application.status)}">${escapeHtml(application.status)}</span>
+            </div>
+            <div class="application-facts">
+              <div class="fact-row">
+                <span class="fact-label">Phone</span>
+                <span>${escapeHtml(application.phoneNumber)}</span>
+              </div>
+              <div class="fact-row">
+                <span class="fact-label">Address</span>
+                <span>${escapeHtml(application.address)}</span>
+              </div>
+              <div class="fact-row">
+                <span class="fact-label">Age</span>
+                <span>${escapeHtml(String(application.age))}</span>
+              </div>
+              <div class="fact-row">
+                <span class="fact-label">Email</span>
+                <span>${escapeHtml(application.applicantEmail || 'Not provided')}</span>
+              </div>
+            </div>
+            <p class="posted-date">Applied: ${formatDate(application.appliedAt)}</p>
+            <div class="button-group">
+              <button
+                class="view-link secondary-link"
+                type="button"
+                onclick="updateStatus(${application.id}, 'ACCEPTED')"
+                ${application.status === 'ACCEPTED' ? 'disabled' : ''}
+              >
+                Accept
+              </button>
+              <button
+                class="view-link danger-link"
+                type="button"
+                onclick="updateStatus(${application.id}, 'REJECTED')"
+                ${application.status === 'REJECTED' ? 'disabled' : ''}
+              >
+                Reject
+              </button>
+            </div>
+          </div>
+        `,
+        )
+        .join('');
+
+      renderPagination(pagination);
     }
 
     function renderJobs(jobs) {
       const jobList = document.getElementById('jobList');
       if (!jobs || jobs.length === 0) {
-        jobList.innerHTML = '<div class="job-card"><h2>No jobs found.</h2></div>';
+        jobList.innerHTML = `
+          <div class="job-card empty-card">
+            <h2>No jobs posted yet.</h2>
+            <p class="job-meta">Create your first listing to start receiving applications.</p>
+            <a class="view-link" href="job-form.html">Post Job</a>
+          </div>
+        `;
         return;
       }
 
@@ -69,19 +208,95 @@
         .map(
           (job) => `
           <div class="job-card">
-            <h2>${job.title}</h2>
-            <p class="job-meta">${job.company} · ${job.location}</p>
-            <p class="salary">${job.salary || 'Salary not specified'}</p>
-            <p class="status">Status: ${job.status}</p>
-            <p class="posted-date">Posted: ${new Date(job.created_at).toLocaleDateString()}</p>
+            <div class="card-title-row">
+              <h2>${escapeHtml(job.title)}</h2>
+              <span class="status-badge ${jobStatusClass(job.status)}">${escapeHtml(job.status || 'Open')}</span>
+            </div>
+            <p class="job-meta">${escapeHtml(job.company)} - ${escapeHtml(job.location)}</p>
+            <p class="salary">${escapeHtml(job.salary || 'Salary not specified')}</p>
+            <p class="posted-date">Posted: ${formatDate(job.created_at)}</p>
             <div class="button-group">
+              <a class="view-link secondary-link" href="job-detail.html?id=${job.id}">View</a>
               <a class="view-link" href="job-form.html?id=${job.id}">Edit</a>
-              <button class="view-link" type="button" onclick="deleteJob(${job.id})">Delete</button>
+              <button class="view-link danger-link" type="button" onclick="deleteJob(${job.id})">Delete</button>
             </div>
           </div>
         `,
         )
         .join('');
+    }
+
+    function renderPagination(pagination) {
+      const paginationElement = document.getElementById('pagination');
+      if (!pagination || pagination.totalPages <= 1) {
+        paginationElement.innerHTML = '';
+        return;
+      }
+
+      const buttons = [];
+
+      buttons.push(`
+        <button
+          class="page-button"
+          type="button"
+          onclick="loadDashboard(${pagination.page - 1})"
+          ${pagination.page <= 1 ? 'disabled' : ''}
+        >
+          Prev
+        </button>
+      `);
+
+      for (let page = 1; page <= pagination.totalPages; page += 1) {
+        buttons.push(`
+          <button
+            class="page-button"
+            type="button"
+            onclick="loadDashboard(${page})"
+            ${page === pagination.page ? 'aria-current="page"' : ''}
+          >
+            ${page}
+          </button>
+        `);
+      }
+
+      buttons.push(`
+        <button
+          class="page-button"
+          type="button"
+          onclick="loadDashboard(${pagination.page + 1})"
+          ${pagination.page >= pagination.totalPages ? 'disabled' : ''}
+        >
+          Next
+        </button>
+      `);
+
+      paginationElement.innerHTML = buttons.join('');
+    }
+
+    async function updateStatus(applicationId, status) {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/applications/${applicationId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status }),
+      });
+
+      if (response.status === 401) {
+        logout();
+        return;
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        setStatus(errorData.message || 'Failed to update application status.');
+        return;
+      }
+
+      setStatus(`Application marked as ${status}.`);
+      loadDashboard(currentPage);
     }
 
     async function deleteJob(jobId) {
@@ -93,11 +308,47 @@
         },
       });
 
-      if (response.ok) {
-        fetchJobs();
-      } else {
-        document.getElementById('statusMessage').textContent = 'Failed to delete job.';
+      if (response.status === 401) {
+        logout();
+        return;
       }
+
+      if (!response.ok) {
+        setStatus('Failed to delete job.');
+        return;
+      }
+
+      setStatus('Job deleted successfully.');
+      loadDashboard(currentPage);
+    }
+
+    function setStatus(message) {
+      document.getElementById('statusMessage').textContent = message;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function statusClass(status) {
+      return `status-${String(status || 'PENDING').toLowerCase()}`;
+    }
+
+    function jobStatusClass(status) {
+      return `status-${String(status || 'Open').toLowerCase()}`;
+    }
+
+    function formatDate(value) {
+      if (!value) {
+        return 'Date unavailable';
+      }
+
+      return new Date(value).toLocaleString();
     }
 
     function logout() {
@@ -106,7 +357,7 @@
       window.location.href = '/login.html';
     }
 
-    fetchJobs();
+    loadDashboard();
   </script>
 </body>
 </html>
